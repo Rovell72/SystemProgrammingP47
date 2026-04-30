@@ -9,24 +9,82 @@ namespace SystemProgrammingP47
         public void Run()
         {
             Console.WriteLine("ConcurenceDemo start");
-            sum = 100.0;
-            cnt = 12;
-            for(int i = 0; i < 12; i += 1)
+            //sum = 100.0;
+            //cnt = 12;
+            //for(int i = 0; i < 12; i += 1)
+            //{
+            //    new Thread(LoadPercent).Start(i + 1);
+            //}
+            Console.Write("Enter num: ");
+            if (!int.TryParse(Console.ReadLine(), out int n) || n <= 0)
             {
-                new Thread(LoadPercent).Start(i + 1);
+                Console.WriteLine("Invalid number");
+                return;
+            }
+
+            lettersCnt = n;
+
+            for (int i = 0; i < n; i += 1)
+            {
+                new Thread(AddLetter).Start(i);
+            }
+        }
+        private string result = "";
+        private readonly Object stringLocker = new();
+        private int lettersCnt;
+        private void AddLetter(Object? arg)
+        {
+            if (arg is int index)
+            {
+                char letter = (char)('a' + index);
+
+                // имитация разной скорости потоков
+                Thread.Sleep(Random.Shared.Next(300, 1500));
+
+                string current;
+                bool isLast;
+
+                lock (stringLocker)
+                {
+                    result += letter;
+
+                    current = result;
+
+                    lettersCnt -= 1;
+
+                    isLast = lettersCnt == 0;
+                }
+
+                Console.WriteLine(
+                    $"Processing letter {index + 1} ({letter}): {current}"
+                );
+
+                if (isLast)
+                {
+                    Console.WriteLine($"Result: {current}");
+                }
+            }
+            else
+            {
+                Console.WriteLine(
+                    "arg must be int, not " +
+                    (arg?.GetType().Name ?? "NULL")
+                );
             }
         }
 
+
+
         private double sum;
-        private readonly Object sumLocker = new();   // об'єкт, створений заради критичної секції
+        private readonly Object sumLocker = new();   // объект, созданный ради критической секции
         private int cnt;
 
-        private void LoadPercent(Object? arg)  // arg - int = номер місяця 
+        private void LoadPercent(Object? arg)  // arg - int = номер месяца 
         {
             if (arg is int month)
             {                      
                 Console.WriteLine($"Load start month {month}");
-                Thread.Sleep(1000);   // імітація тривалості запиту
+                Thread.Sleep(1000);   // имитация длительности запроса
                 double percent = month;
                 double k = 1.0 + percent / 100.0;
                 double res;
@@ -37,12 +95,12 @@ namespace SystemProgrammingP47
                     res = res * k;
                     sum = res;
                     cnt = cnt - 1;
-                    isLast = cnt == 0;  // локально - фіксуємо стан на момент синхронізованої операції
-                // Console.WriteLine($"Load finish month {month}, sum = {sum}");   // усі звернення до спільного ресурсу синхронізуються
+                    isLast = cnt == 0;  // локально – фиксируем состояние на момент синхронизированной операции
+                                        // Console.WriteLine($"Load finish month {month}, sum = {sum}");   // все обращения к общему ресурсу синхронизируются
                 }
-                Console.WriteLine($"Load finish month {month}, sum = {res}");   // локальна змінна (res) дозволяє винести код з блока
+                Console.WriteLine($"Load finish month {month}, sum = {res}");   // локальная переменная (res) позволяет вынести код из блока
             
-                if(isLast)   // (cnt == 0) - неправильно, глобальна змінна напевно змінена іншими потоками
+                if(isLast)   // (cnt == 0) - неправильно, глобальная переменная, вероятно, изменена другими потоками
                 {
                     Console.WriteLine($"Total: {res}");
                 }
@@ -54,7 +112,7 @@ namespace SystemProgrammingP47
         }
 
 
-        private void LoadPercentWrong(Object? arg)  // arg - int = номер місяця 
+        private void LoadPercentWrong(Object? arg)  // arg - int = номер месяца 
         {
             if(arg is int month)
             {                     // Блок синхронізації - набір команд, який не допускає одночасного виконання

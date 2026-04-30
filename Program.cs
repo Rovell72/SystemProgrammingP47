@@ -10,8 +10,8 @@ namespace SystemProgrammingP47
 
             Console.WriteLine("System Programming");
             //new ProcessDemo().Run();
-            new ThreadingDemo().Run();
-            // new ConcurenceDemo().Run();
+            //new ThreadingDemo().Run();
+            new ConcurenceDemo().Run();
             // new ThreadLimitation().Run();
             // new ThreadPooling().Run();
             // new CancellingDemo().Run();
