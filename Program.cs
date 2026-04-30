@@ -11,11 +11,11 @@ namespace SystemProgrammingP47
             Console.WriteLine("System Programming");
             //new ProcessDemo().Run();
             //new ThreadingDemo().Run();
-            new ConcurenceDemo().Run();
-            // new ThreadLimitation().Run();
-            // new ThreadPooling().Run();
-            // new CancellingDemo().Run();
-            // new CancellingPractice().Run();
+            //new ConcurenceDemo().Run();
+            //new ThreadLimitation().Run();
+            //new ThreadPooling().Run();
+            //new CancellingDemo().Run();
+            new CancellingPractice().Run();
             // new TaskDemo().Run();
             //new ChainingDemo().Run();
             //new Exam().Run();

@@ -8,63 +8,164 @@ namespace SystemProgrammingP47
     {
         public void Run()
         {
+            Console.WriteLine("1 - Шифрування");
+            Console.WriteLine("2 - Розшифрування");
+            Console.Write("Ваш вибір : ");
+            string choice = Console.ReadLine()!;
+
             Console.Write("Введіть ім'я файлу для шифрування (default demo.txt): ");
             String filename = Console.ReadLine()!;
-            if(filename.Length == 0)
+
+            if (filename.Length == 0)
             {
                 filename = "demo.txt";
             }
-            if (File.Exists(filename))
-            {
-                Console.Write("Пароль шифрування: ");
-                String password = Console.ReadLine()!;
-                CancellationTokenSource source = new();
-                new Thread(Encrypt).Start(
-                    new EncryptData(filename, password, source.Token)
-                );
-                Console.WriteLine("Для скасування натисність будь-яку кнопку");
-                Console.ReadKey();
-                source.Cancel();
-            }
-            else
+            if (!File.Exists(filename))
             {
                 Console.WriteLine("Файл не знайдено");
+                return;
             }
+            Console.Write("Пароль: ");
+            string password = Console.ReadLine()!;
+
+            CancellationTokenSource source = new();
+
+            CryptoData data = new(
+                filename,
+                password,
+                source.Token,
+                choice == "1"
+            );
+            new Thread(ProcessFile).Start(data);
+
+            Console.WriteLine("Натисніть будь-яку клавішу для скасування ");
+            Console.ReadKey();
+
+            source.Cancel();
+        
+
+
+            //if (File.Exists(filename))
+            //{
+            //    Console.Write("Пароль шифрування: ");
+            //    String password = Console.ReadLine()!;
+            //    CancellationTokenSource source = new();
+            //    new Thread(Encrypt).Start(
+            //        new EncryptData(filename, password, source.Token)
+            //    );
+            //    Console.WriteLine("Для скасування натисність будь-яку кнопку");
+            //    Console.ReadKey();
+            //    source.Cancel();
+            //}
+            //else
+            //{
+            //    Console.WriteLine("Файл не знайдено");
+            //}
         }
 
-        private void Encrypt(Object? arg)
+        private void ProcessFile(object? arg)
         {
             StringBuilder sb = new();
+
             try
             {
-                EncryptData data = (EncryptData)arg!;
-                String text = File.ReadAllText(data.Filename);
-                for(int i = 0; i <  text.Length; i++) 
+                CryptoData data = (CryptoData)arg!;
+
+                string text = File.ReadAllText(data.Filename);
+
+                for (int i = 0; i < text.Length; i++)
                 {
                     char w = text[i];
                     int wi = (int)w;
+
                     char p = data.Password[i % data.Password.Length];
                     int pi = (int)p;
+
                     int ci = wi ^ pi;
-                    char c = (char) ci;
-                    Console.WriteLine("{4}({0}) {5}({1}) {3}({2})", wi, pi, ci, c, w, p);
-                    Thread.Sleep(200);   // імітація тривалого процесу
+
+                    char c = (char)ci;
+
+                    Console.WriteLine(
+                        "{4}({0}) XOR {5}({1}) = {3}({2})",
+                        wi, pi, ci, c, w, p
+                    );
+
+                    Thread.Sleep(200);
+
                     sb.Append(c);
 
-                    // перевірка скасування
                     data.Token.ThrowIfCancellationRequested();
                 }
 
-                Console.WriteLine("Результат шифрування: {0}", sb.ToString());
-                File.WriteAllText("demo.enc", sb.ToString());
+                string outputFile;
+
+                if (data.IsEncryption)
+                {
+                    outputFile = "demo.enc";
+                    Console.WriteLine("\nШифрування завершене");
+                }
+                else
+                {
+                    outputFile = "demo.dec";
+                    Console.WriteLine("\nРозшифрування завершене");
+                }
+
+                File.WriteAllText(outputFile, sb.ToString());
+
+                Console.WriteLine("Результат записано у файл: " + outputFile);
             }
-            catch
+            catch (OperationCanceledException)
             {
-                // завершальні дії - очищаємо напрацьовані дані
                 sb.Clear();
-                Console.WriteLine("Шифрування скасоване");
+                Console.WriteLine("\nОперацію скасовано користувачем");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Помилка: " + ex.Message);
             }
         }
+
+
+
+        //private void Encrypt(Object? arg)
+        //{
+        //    StringBuilder sb = new();
+        //    try
+        //    {
+        //        EncryptData data = (EncryptData)arg!;
+        //        String text = File.ReadAllText(data.Filename);
+        //        for(int i = 0; i <  text.Length; i++) 
+        //        {
+        //            char w = text[i];
+        //            int wi = (int)w;
+        //            char p = data.Password[i % data.Password.Length];
+        //            int pi = (int)p;
+        //            int ci = wi ^ pi;
+        //            char c = (char) ci;
+        //            Console.WriteLine("{4}({0}) {5}({1}) {3}({2})", wi, pi, ci, c, w, p);
+        //            Thread.Sleep(200);   // імітація тривалого процесу
+        //            sb.Append(c);
+
+        //            // перевірка скасування
+        //            data.Token.ThrowIfCancellationRequested();
+        //        }
+
+        //        Console.WriteLine("Результат шифрування: {0}", sb.ToString());
+        //        File.WriteAllText("demo.enc", sb.ToString());
+        //    }
+        //    catch
+        //    {
+        //        // завершальні дії - очищаємо напрацьовані дані
+        //        sb.Clear();
+        //        Console.WriteLine("Шифрування скасоване");
+        //    }
+        //}
+        record CryptoData(
+        string Filename,
+        string Password,
+        CancellationToken Token,
+        bool IsEncryption
+    );
     }
 
     record EncryptData(String Filename, String Password, CancellationToken Token);
