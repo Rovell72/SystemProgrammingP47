@@ -9,8 +9,8 @@ namespace SystemProgrammingP47
             Console.OutputEncoding = Encoding.UTF8;
 
             Console.WriteLine("System Programming");
-            new ProcessDemo().Run();
-            // new ThreadingDemo().Run();
+            //new ProcessDemo().Run();
+            new ThreadingDemo().Run();
             // new ConcurenceDemo().Run();
             // new ThreadLimitation().Run();
             // new ThreadPooling().Run();

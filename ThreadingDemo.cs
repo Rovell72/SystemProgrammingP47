@@ -4,8 +4,22 @@ using System.Text;
 
 namespace SystemProgrammingP47
 {
+    internal class Point
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Name { get; set; }
+
+        public Point(string name, int x, int y)
+        {
+            Name = name;
+            X = x;
+            Y = y;
+        }
+    }
     internal class ThreadingDemo
     {
+
         public void Run()
         {
             Console.WriteLine("Threading Demo");
@@ -17,14 +31,18 @@ namespace SystemProgrammingP47
 
             try
             {
-                new Thread(ThreadAction2).Start(10);    // для передачі даних до методу потоку
-                new Thread(ThreadAction2).Start("A");   // аргумент подається до Start(...)
+                //new Thread(ThreadAction2).Start(10);    // для передачі даних до методу потоку
+                //new Thread(ThreadAction2).Start("A");   // аргумент подається до Start(...)
+                new Thread(ThreadPointAction).Start(new Point("A", 10, 20));
+                new Thread(ThreadPointAction).Start(new Point("B", 5, 15));
+                new Thread(ThreadPointAction).Start(123);
+                new Thread(ThreadPointAction).Start("Hello");
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
-
+            Thread.Sleep(500);
             Console.WriteLine("Threading Demo End");
         }
 
@@ -47,6 +65,17 @@ namespace SystemProgrammingP47
             Console.WriteLine("Threading Action1 Begin");
             Thread.Sleep(1000);
             Console.WriteLine("Threading Action1 End");
+        }
+        private void ThreadPointAction(object? arg)
+        {
+            if (arg is Point p)
+            {
+                Console.WriteLine($"Точка \"{p.Name}\" ({p.X};{p.Y})");
+            }
+            else
+            {
+                Console.WriteLine("! передані неправильні дані - очікується Point");
+            }
         }
     }
 }
